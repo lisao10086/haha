@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)file:///D:/zuomian/ciallo%E5%A4%8D%E5%88%BB/main.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>随机颜色弹幕效果</title>
+	
+	<style>
+	    body {
+	        margin: 0;
+	        min-height: 100vh;
+	        display: flex;
+	        justify-content: center;
+	        align-items: center;
+	        background: white
+	    }
+	
+	    .shake-word {
+	        display: inline-block;
+	        font-size: 4rem;
+	        font-family: Arial, sans-serif;
+	        color: #00000
+	    }
+	
+	    .shake-letter {
+	        display: inline-block;
+	        animation: shake 0.8s ease-in-out infinite;
+	    }
+	
+	    /* 为每个字母设置不同的动画延迟 */
+	    .shake-letter:nth-child(1) { animation-delay: 0.1s; }
+	    .shake-letter:nth-child(2) { animation-delay: 0.2s; }
+	    .shake-letter:nth-child(3) { animation-delay: 0.3s; }
+	    .shake-letter:nth-child(4) { animation-delay: 0.4s; }
+	    .shake-letter:nth-child(5) { animation-delay: 0.5s; }
+	    .shake-letter:nth-child(6) { animation-delay: 0.6s; }
+	
+	    @keyframes shake {
+	        0%, 100% { transform: translateX(0) rotate(0deg); }
+	        25% { transform: translateX(-3px) rotate(-5deg); }
+	        50% { transform: translateX(3px) rotate(5deg); }
+	        75% { transform: translateX(-2px) rotate(-3deg); }
+	    }
+	</style>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: white
+        }
+
+        #danmu-container {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .danmu {
+            position: absolute;
+            white-space: nowrap;
+			/* 下是设置字体 */
+            font-family: "SimSun", "NSimSun", "宋体", serif;
+            /* 移除 font-weight 设置 */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: moveRight linear forwards;
+        }
+
+        @keyframes moveRight {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100vw);
+            }
+        }
+    </style>
+</head><body>
+	
+	<a class="shake-word">
+	    <span class="shake-letter">c</span>
+	    <span class="shake-letter">i</span>
+	    <span class="shake-letter">a</span>
+	    <span class="shake-letter">l</span>
+	    <span class="shake-letter">l</span>
+	    <span class="shake-letter">o</span>
+	</a>
+	<audio id="click-sound" src="https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3"></audio>
+	    <style>
+	        body {
+	            height: 100vh;
+	            margin: 0;
+	            overflow: hidden;
+	            background-color: white;
+	            touch-action: none;
+	        }
+	        
+	        #mouse-tracker {
+	            position: fixed;
+	            top: 20px;
+	            left: 20px;
+	            background-color: rgba(255, 255, 255, 0.9);
+	            color: #333;
+	            padding: 10px 20px;
+	            border-radius: 5px;
+	            font-family: Arial, sans-serif;
+	            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+	            z-index: 1000;
+	        }
+	
+	        .trail-text {
+	            position: absolute;
+	            font-size: 24px;
+	            font-weight: bold;
+	            color: #ff6b6b;
+	            pointer-events: none;
+	            animation: trailEffect 0.8s linear forwards;
+	            text-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
+	            transform: translate(-50%, -50%);
+	        }
+	
+	        @keyframes trailEffect {
+	            0% {
+	                opacity: 1;
+	                transform: translate(-50%, -50%) scale(1);
+	            }
+	            100% {
+	                opacity: 0;
+	                transform: translate(-50%, -50%) scale(0.5) rotate(180deg);
+	            }
+	        }
+			
+		/* 	隐藏掉坐标 状态 设备
+		#mouse-tracker {
+			    display: none;
+			} */
+			
+		/* 	隐藏掉坐标 状态 设备2 */	
+			#mouse-tracker {
+			    opacity: 0;
+			    pointer-events: none;
+			    transition: opacity 0.3s;
+			}
+			#mouse-tracker:hover {
+			    opacity: 1;
+			}
+	    </style>
+	
+
+	    <div id="mouse-tracker">
+	        <p>坐标：<span id="coordinates">坐标/span></p>
+	        <p>状态：<span id="touch-state">未按下</span></p>
+	        <p>设备：<span id="device-type">PC设备</span></p>
+	    </div>
+	
+	    <!-- 音频元素 -->
+	    <audio id="click-sound" src="https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3"></audio>
+	
+	    <script>
+	        const coordinates = document.getElementById('coordinates');
+	        const touchState = document.getElementById('touch-state');
+	        const deviceType = document.getElementById('device-type');
+	        const clickSound = document.getElementById('click-sound');
+	        let lastTime = 0;
+	        const trailDelay = 30;
+	        let isMobile = false;
+	
+	        // 设备检测
+	        function detectDevice() {
+	            isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	            deviceType.textContent = isMobile ? '移动设备' : 'PC设备';
+	        }
+	
+	        // 创建拖尾文字
+	        function createTrail(x, y) {
+	            const trail = document.createElement('div');
+	            trail.className = 'trail-text';
+	            trail.textContent = '※';
+	            
+	            trail.style.left = x + 'px';
+	            trail.style.top = y + 'px';
+	            
+	            trail.addEventListener('animationend', () => {
+	                trail.remove();
+	            });
+	
+	            document.body.appendChild(trail);
+	        }
+	
+	        // 处理坐标更新
+	        function updatePosition(x, y) {
+	            const now = Date.now();
+	            if (now - lastTime > trailDelay) {
+	                createTrail(x, y);
+	                lastTime = now;
+	            }
+	            coordinates.textContent = `${x}, ${y}`;
+	        }
+	
+	        // 播放音效
+	        function playClickSound() {
+	            clickSound.currentTime = 0; // 重置播放位置
+	            clickSound.play().catch(error => {
+	                console.log('音频播放失败:', error);
+	            });
+	        }
+	
+	        // PC端事件
+	        function initPCEvents() {
+	            document.addEventListener('mousemove', (e) => {
+	                updatePosition(e.clientX, e.clientY);
+	            });
+	
+	            document.addEventListener('mousedown', () => {
+	                touchState.textContent = '按下';
+	                // document.body.style.backgroundColor = '#2a2a2a';
+	                playClickSound();
+	            });
+	
+	            document.addEventListener('mouseup', () => {
+	                touchState.textContent = '未按下';
+	                // document.body.style.backgroundColor = '#1a1a1a';
+	            });
+	        }
+	
+	        // 移动端事件
+	        function initTouchEvents() {
+	            document.addEventListener('touchmove', (e) => {
+	                e.preventDefault();
+	                const touch = e.touches[0];
+	                updatePosition(touch.clientX, touch.clientY);
+	            });
+	
+	            document.addEventListener('touchstart', () => {
+	                touchState.textContent = '触摸中';
+	                // document.body.style.backgroundColor = '#2a2a2a';
+	                playClickSound();
+	            });
+	
+	            document.addEventListener('touchend', () => {
+	                touchState.textContent = '未触摸';
+	                // -ocument.body.style.backgroundColor = '#1a1a1a';
+	            });
+	        }
+	
+	        // 初始化
+	        detectDevice();
+	        if (isMobile) {
+	            initTouchEvents();
+	        } else {
+	            initPCEvents();
+	        }
+	
+	        // 预加载音频
+	        window.addEventListener('load', () => {
+	            clickSound.load();
+	        });
+	    </script>
+		
+		
+
+    <div id="danmu-container"><div class="danmu" style="color: rgb(251, 255, 0); font-size: 25.3439px; top: 301.967px; animation-duration: 7.37399s;">ciallo~</div><div class="danmu" style="color: rgb(0, 68, 255); font-size: 27.1261px; top: 475.599px; animation-duration: 7.68988s;">ciallo~</div><div class="danmu" style="color: rgb(255, 106, 0); font-size: 47.9622px; top: 114.443px; animation-duration: 6.85822s;">ciallo~</div><div class="danmu" style="color: rgb(0, 34, 255); font-size: 22.941px; top: 165.769px; animation-duration: 6.58363s;">ciallo~</div><div class="danmu" style="color: rgb(0, 225, 255); font-size: 40.669px; top: 34.1352px; animation-duration: 6.61147s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 30); font-size: 26.8992px; top: 279.188px; animation-duration: 7.27045s;">ciallo~</div><div class="danmu" style="color: rgb(0, 255, 195); font-size: 44.6552px; top: 355.748px; animation-duration: 6.15231s;">ciallo~</div><div class="danmu" style="color: rgb(255, 183, 0); font-size: 47.4558px; top: 631.269px; animation-duration: 7.60194s;">ciallo~</div><div class="danmu" style="color: rgb(255, 157, 0); font-size: 47.5965px; top: 308.645px; animation-duration: 6.25302s;">ciallo~</div><div class="danmu" style="color: rgb(255, 162, 0); font-size: 44.3539px; top: 449.278px; animation-duration: 7.26591s;">ciallo~</div><div class="danmu" style="color: rgb(0, 251, 255); font-size: 48.8192px; top: 258.078px; animation-duration: 7.72196s;">ciallo~</div><div class="danmu" style="color: rgb(21, 255, 0); font-size: 26.2906px; top: 650.181px; animation-duration: 6.53725s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 30); font-size: 24.475px; top: 519.688px; animation-duration: 5.81885s;">ciallo~</div><div class="danmu" style="color: rgb(208, 0, 255); font-size: 31.5683px; top: 34.3669px; animation-duration: 7.87164s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 204); font-size: 25.7798px; top: 153.609px; animation-duration: 6.42547s;">ciallo~</div><div class="danmu" style="color: rgb(17, 255, 0); font-size: 24.3398px; top: 477.386px; animation-duration: 7.39888s;">ciallo~</div><div class="danmu" style="color: rgb(0, 115, 255); font-size: 44.7478px; top: 646.804px; animation-duration: 4.365s;">ciallo~</div><div class="danmu" style="color: rgb(174, 255, 0); font-size: 37.2245px; top: 365.325px; animation-duration: 5.06021s;">ciallo~</div><div class="danmu" style="color: rgb(255, 230, 0); font-size: 37.3908px; top: 507.052px; animation-duration: 5.25433s;">ciallo~</div><div class="danmu" style="color: rgb(0, 255, 115); font-size: 37.6829px; top: 451.824px; animation-duration: 5.09344s;">ciallo~</div><div class="danmu" style="color: rgb(255, 238, 0); font-size: 35.2839px; top: 645.135px; animation-duration: 6.29204s;">ciallo~</div><div class="danmu" style="color: rgb(0, 132, 255); font-size: 45.4448px; top: 594.019px; animation-duration: 6.95642s;">ciallo~</div><div class="danmu" style="color: rgb(0, 255, 21); font-size: 34.8167px; top: 542.62px; animation-duration: 4.66496s;">ciallo~</div><div class="danmu" style="color: rgb(255, 178, 0); font-size: 36.7603px; top: 292.539px; animation-duration: 5.13051s;">ciallo~</div><div class="danmu" style="color: rgb(0, 34, 255); font-size: 30.7757px; top: 546.823px; animation-duration: 4.91153s;">ciallo~</div><div class="danmu" style="color: rgb(149, 0, 255); font-size: 28.922px; top: 575.216px; animation-duration: 3.47107s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 119); font-size: 35.2017px; top: 146.076px; animation-duration: 5.62689s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 81); font-size: 30.0718px; top: 6.48399px; animation-duration: 4.61892s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 30); font-size: 20.8975px; top: 391.4px; animation-duration: 5.73873s;">ciallo~</div><div class="danmu" style="color: rgb(0, 255, 212); font-size: 30.8124px; top: 464.354px; animation-duration: 6.85001s;">ciallo~</div><div class="danmu" style="color: rgb(0, 43, 255); font-size: 36.416px; top: 119.343px; animation-duration: 7.32171s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 102); font-size: 32.8219px; top: 250.116px; animation-duration: 3.37194s;">ciallo~</div><div class="danmu" style="color: rgb(13, 0, 255); font-size: 34.9479px; top: 293.825px; animation-duration: 3.44995s;">ciallo~</div><div class="danmu" style="color: rgb(9, 255, 0); font-size: 36.8356px; top: 148.769px; animation-duration: 4.11707s;">ciallo~</div><div class="danmu" style="color: rgb(0, 255, 238); font-size: 44.5047px; top: 351.389px; animation-duration: 6.30777s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 34); font-size: 20.1804px; top: 91.4179px; animation-duration: 6.28291s;">ciallo~</div><div class="danmu" style="color: rgb(255, 68, 0); font-size: 31.2781px; top: 594.658px; animation-duration: 5.57197s;">ciallo~</div><div class="danmu" style="color: rgb(255, 157, 0); font-size: 26.0424px; top: 2.66817px; animation-duration: 5.75779s;">ciallo~</div><div class="danmu" style="color: rgb(145, 255, 0); font-size: 24.1787px; top: 272.739px; animation-duration: 4.75499s;">ciallo~</div><div class="danmu" style="color: rgb(255, 225, 0); font-size: 29.9837px; top: 28.683px; animation-duration: 5.3618s;">ciallo~</div><div class="danmu" style="color: rgb(123, 0, 255); font-size: 20.5389px; top: 377.684px; animation-duration: 6.66666s;">ciallo~</div><div class="danmu" style="color: rgb(51, 255, 0); font-size: 22.5203px; top: 219.695px; animation-duration: 6.35597s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 119); font-size: 37.8763px; top: 345.409px; animation-duration: 3.3845s;">ciallo~</div><div class="danmu" style="color: rgb(21, 255, 0); font-size: 21.0069px; top: 238.504px; animation-duration: 4.01647s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 157); font-size: 36.6191px; top: 60.7459px; animation-duration: 6.57188s;">ciallo~</div><div class="danmu" style="color: rgb(0, 187, 255); font-size: 21.4306px; top: 344.928px; animation-duration: 5.26309s;">ciallo~</div><div class="danmu" style="color: rgb(255, 115, 0); font-size: 24.8715px; top: 263.147px; animation-duration: 4.95092s;">ciallo~</div><div class="danmu" style="color: rgb(0, 162, 255); font-size: 49.2591px; top: 59.6359px; animation-duration: 6.46566s;">ciallo~</div><div class="danmu" style="color: rgb(0, 0, 255); font-size: 21.147px; top: 164.526px; animation-duration: 6.89534s;">ciallo~</div><div class="danmu" style="color: rgb(200, 0, 255); font-size: 29.1839px; top: 25.1889px; animation-duration: 6.46089s;">ciallo~</div><div class="danmu" style="color: rgb(255, 77, 0); font-size: 28.5399px; top: 126.824px; animation-duration: 4.131s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 213); font-size: 36.0448px; top: 443.353px; animation-duration: 5.37726s;">ciallo~</div><div class="danmu" style="color: rgb(255, 183, 0); font-size: 25.0109px; top: 364.559px; animation-duration: 7.32064s;">ciallo~</div><div class="danmu" style="color: rgb(132, 255, 0); font-size: 22.9016px; top: 353.779px; animation-duration: 3.93515s;">ciallo~</div><div class="danmu" style="color: rgb(255, 0, 208); font-size: 30.1285px; top: 0.218186px; animation-duration: 5.43607s;">ciallo~</div><div class="danmu" style="color: rgb(255, 221, 0); font-size: 21.962px; top: 640.355px; animation-duration: 4.44837s;">ciallo~</div><div class="danmu" style="color: rgb(255, 106, 0); font-size: 20.9062px; top: 370.648px; animation-duration: 6.50018s;">ciallo~</div><div class="danmu" style="color: rgb(0, 68, 255); font-size: 43.4377px; top: 7.17484px; animation-duration: 7.72451s;">ciallo~</div><div class="danmu" style="color: rgb(0, 77, 255); font-size: 33.5071px; top: 219.96px; animation-duration: 5.94091s;">ciallo~</div></div>
+
+    <script>
+        function createDanmu() {
+            const container = document.getElementById('danmu-container');
+            const danmu = document.createElement('div');
+            danmu.className = 'danmu';
+            
+            // 随机生成颜色
+            const hue = Math.floor(Math.random() * 360);
+            danmu.style.color = `hsl(${hue}, 100%, 50%)`;
+            
+            // 随机生成字体大小（20px-50px之间）
+            const fontSize = 20 + Math.random() * 30;
+            danmu.style.fontSize = `${fontSize}px`;
+            
+            // 随机生成垂直位置
+            const top = Math.random() * (window.innerHeight - fontSize * 2);
+            danmu.style.top = `${top}px`;
+            
+            // 随机生成动画时长
+            const duration = 3 + Math.random() * 5;
+            danmu.style.animationDuration = `${duration}s`;
+            
+            // 弹幕内容
+            danmu.textContent = getRandomText();
+            
+            container.appendChild(danmu);
+            
+            danmu.addEventListener('animationend', () => {
+                danmu.remove();
+            });
+        }
+
+        function getRandomText() {
+            const texts = [
+                "ciallo~"
+            ];
+            return texts[Math.floor(Math.random() * texts.length)];
+        }
+
+        setInterval(createDanmu, 100);
+
+        for(let i = 0; i < 10; i++) {
+            setTimeout(createDanmu, Math.random() * 2000);
+        }
+    </script>
+
+</body></html>
